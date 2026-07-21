@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Messages — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-2xl font-bold mb-8">💬 Messages</h1>
+
+  {% if conversations %}
+    <div class="space-y-3">
+      {% for c in conversations %}
+        <a href="{% url 'chatapp:conversation_detail' c.pk %}" class="glass rounded-xl p-4 flex items-center justify-between card-hover block">
+          <div>
+            <div class="font-semibold">
+              {% if request.user == c.buyer %}{{ c.dealer.dealer_profile.company_name|default:c.dealer.username }}{% else %}{{ c.buyer.username }}{% endif %}
+            </div>
+            {% if c.vehicle %}<div class="text-xs text-white/50">{{ c.vehicle }}</div>{% endif %}
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-white/40">{{ c.updated_at|timesince }} ago</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="glass rounded-2xl p-12 text-center text-white/60">
+      No conversations yet. Start one from any vehicle's page with the "💬 Chat with Dealer" button.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

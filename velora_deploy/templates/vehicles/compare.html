@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block title %}Compare Vehicles — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-2xl font-bold mb-6">Compare Vehicles</h1>
+
+  {% if not vehicles %}
+    <div class="glass rounded-2xl p-12 text-center text-white/60">
+      No vehicles selected. Add <code>?id=1&amp;id=2</code> to the URL, or wire up a "Compare" checkbox
+      on the marketplace listing page to build this list dynamically.
+    </div>
+  {% else %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm glass rounded-2xl overflow-hidden">
+        <thead>
+          <tr class="text-left border-b border-white/10">
+            <th class="p-4 text-white/50">Spec</th>
+            {% for v in vehicles %}
+              <th class="p-4">
+                <a href="{% url 'vehicles:vehicle_detail' v.pk %}" class="hover:text-velora-blue">
+                  {{ v.year }} {{ v.make }} {{ v.model }}
+                </a>
+              </th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-white/5">
+          <tr><td class="p-4 text-white/50">Price</td>{% for v in vehicles %}<td class="p-4 font-semibold">{{ v.currency }} {{ v.price|intcomma }}</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Mileage</td>{% for v in vehicles %}<td class="p-4">{{ v.mileage|intcomma }} mi</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Horsepower</td>{% for v in vehicles %}<td class="p-4">{{ v.horsepower|default:"—" }} hp</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Fuel Type</td>{% for v in vehicles %}<td class="p-4">{{ v.get_fuel_type_display }}</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Transmission</td>{% for v in vehicles %}<td class="p-4">{{ v.get_transmission_display }}</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Drivetrain</td>{% for v in vehicles %}<td class="p-4">{{ v.get_drivetrain_display }}</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Condition</td>{% for v in vehicles %}<td class="p-4">{{ v.get_condition_display }}</td>{% endfor %}</tr>
+          <tr><td class="p-4 text-white/50">Location</td>{% for v in vehicles %}<td class="p-4">{{ v.city }}, {{ v.country }}</td>{% endfor %}</tr>
+        </tbody>
+      </table>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

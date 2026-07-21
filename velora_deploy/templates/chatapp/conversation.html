@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Chat — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="glass rounded-2xl overflow-hidden flex flex-col h-[70vh]">
+    <div class="p-4 border-b border-white/10 flex items-center justify-between">
+      <div>
+        <div class="font-semibold">
+          {% if request.user == conversation.buyer %}{{ conversation.dealer.dealer_profile.company_name|default:conversation.dealer.username }}{% else %}{{ conversation.buyer.username }}{% endif %}
+        </div>
+        {% if conversation.vehicle %}
+          <a href="{% url 'vehicles:vehicle_detail' conversation.vehicle.pk %}" class="text-xs text-velora-blue hover:underline">{{ conversation.vehicle }}</a>
+        {% endif %}
+      </div>
+      <a href="{% url 'chatapp:inbox' %}" class="text-xs text-white/50 hover:text-white">← All messages</a>
+    </div>
+
+    <div id="message-list" data-conversation="{{ conversation.pk }}" data-last-id="{{ conversation.messages.last.id|default:0 }}"
+         class="flex-1 overflow-y-auto p-4 space-y-3">
+      {% for m in conversation.messages.all %}
+        <div class="flex {% if m.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+          <div class="max-w-xs sm:max-w-sm rounded-2xl px-4 py-2 text-sm {% if m.sender == request.user %}bg-velora-blue{% else %}bg-white/10{% endif %}">
+            {% if m.is_ai_suggestion %}<div class="text-[10px] text-white/50 mb-1">🤖 Auto-reply</div>{% endif %}
+            {% if m.content %}<div>{{ m.content }}</div>{% endif %}
+            {% if m.attachment %}<a href="{{ m.attachment.url }}" class="underline text-xs" target="_blank">📎 Attachment</a>{% endif %}
+            <div class="text-[10px] text-white/40 mt-1">{{ m.created_at|time:"g:i A" }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div class="p-3 border-t border-white/10">
+      <div class="flex flex-wrap gap-2 mb-2">
+        {% for suggestion in quick_replies %}
+          <button type="button" class="quick-reply text-xs glass px-3 py-1.5 rounded-full hover:bg-white/10" data-text="{{ suggestion }}">{{ suggestion }}</button>
+        {% endfor %}
+      </div>
+      <form method="post" enctype="multipart/form-data" class="flex gap-2">
+        {% csrf_token %}
+        <input type="text" name="content" id="chat-input" placeholder="Type a message…" class="flex-1 bg-black/30 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-velora-blue">
+        <label class="glass rounded-xl px-4 py-3 cursor-pointer text-sm">
+          📎<input type="file" name="attachment" class="hidden">
+        </label>
+        <button class="bg-velora-blue hover:bg-blue-600 transition px-6 py-3 rounded-xl font-semibold">Send</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  document.querySelectorAll('.quick-reply').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('chat-input').value = btn.dataset.text;
+      document.getElementById('chat-input').focus();
+    });
+  });
+
+  // Lightweight polling for near-real-time updates.
+  // Swap this for a WebSocket connection (Django Channels) when you're
+  // ready for true push-based delivery at scale.
+  const listEl = document.getElementById('message-list');
+  const conversationId = listEl.dataset.conversation;
+  let lastId = parseInt(listEl.dataset.lastId, 10) || 0;
+
+  async function pollMessages() {
+    try {
+      const res = await fetch(`/chat/${conversationId}/poll/?since=${lastId}`);
+      const data = await res.json();
+      if (data.messages.length) {
+        data.messages.forEach(m => {
+          lastId = Math.max(lastId, m.id);
+          const wrapper = document.createElement('div');
+          wrapper.className = `flex ${m.is_me ? 'justify-end' : 'justify-start'}`;
+          wrapper.innerHTML = `<div class="max-w-xs sm:max-w-sm rounded-2xl px-4 py-2 text-sm ${m.is_me ? 'bg-velora-blue' : 'bg-white/10'}">
+            ${m.is_ai ? '<div class="text-[10px] text-white/50 mb-1">🤖 Auto-reply</div>' : ''}
+            <div>${m.content}</div>
+            <div class="text-[10px] text-white/40 mt-1">${m.created_at}</div>
+          </div>`;
+          listEl.appendChild(wrapper);
+        });
+        listEl.scrollTop = listEl.scrollHeight;
+      }
+    } catch (e) { /* silent retry on next tick */ }
+  }
+  listEl.scrollTop = listEl.scrollHeight;
+  setInterval(pollMessages, 3000);
+</script>
+{% endblock %}

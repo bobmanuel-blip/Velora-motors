@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load widget_tweaks humanize %}
+{% block title %}Dealer Dashboard — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold">Dealer Dashboard</h1>
+    <a href="{% url 'vehicles:vehicle_create' %}" class="bg-velora-blue hover:bg-blue-600 transition px-6 py-3 rounded-xl font-semibold">+ List a Vehicle</a>
+  </div>
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="glass rounded-2xl p-5 text-center"><div class="text-2xl font-bold">{{ stats.total_listings }}</div><div class="text-xs text-white/50 mt-1">Total Listings</div></div>
+    <div class="glass rounded-2xl p-5 text-center"><div class="text-2xl font-bold">{{ stats.available }}</div><div class="text-xs text-white/50 mt-1">Available</div></div>
+    <div class="glass rounded-2xl p-5 text-center"><div class="text-2xl font-bold">{{ stats.sold }}</div><div class="text-xs text-white/50 mt-1">Sold</div></div>
+    <div class="glass rounded-2xl p-5 text-center"><div class="text-2xl font-bold">{{ stats.featured }}</div><div class="text-xs text-white/50 mt-1">Featured</div></div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div class="lg:col-span-2">
+      <h2 class="text-xl font-bold mb-4">Your Inventory</h2>
+      {% if vehicles %}
+        <div class="space-y-3">
+          {% for v in vehicles %}
+            <div class="glass rounded-xl p-4 flex items-center justify-between">
+              <div>
+                <a href="{% url 'vehicles:vehicle_detail' v.pk %}" class="font-semibold hover:text-velora-blue">{{ v }}</a>
+                <div class="text-xs text-white/50 mt-1">{{ v.currency }} {{ v.price|intcomma }} · {{ v.get_status_display }} · {{ v.view_count }} views</div>
+              </div>
+              <div class="flex gap-2 text-sm">
+                <a href="{% url 'vehicles:vehicle_update' v.pk %}" class="px-3 py-1.5 rounded-lg glass">Edit</a>
+                <a href="{% url 'vehicles:vehicle_delete' v.pk %}" class="px-3 py-1.5 rounded-lg border border-red-500/30 text-red-300">Delete</a>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="glass rounded-2xl p-10 text-center text-white/60">You haven't listed any vehicles yet.</div>
+      {% endif %}
+    </div>
+
+    <div>
+      <h2 class="text-xl font-bold mb-4">Dealer Profile</h2>
+      <div class="glass rounded-2xl p-6">
+        {% if profile.is_verified %}<span class="text-xs text-green-400">✅ Verified Dealer</span>{% else %}<span class="text-xs text-white/40">Pending verification</span>{% endif %}
+        <form method="post" enctype="multipart/form-data" class="space-y-3 mt-4">
+          {% csrf_token %}
+          {% for field in form %}
+            <div>
+              <label class="block text-xs text-white/60 mb-1">{{ field.label }}</label>
+              {{ field|add_class:"w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white text-sm" }}
+            </div>
+          {% endfor %}
+          <button class="w-full bg-velora-blue hover:bg-blue-600 transition py-2.5 rounded-lg font-semibold text-sm">Save Profile</button>
+        </form>
+      </div>
+      <a href="{% url 'chatapp:inbox' %}" class="block mt-4 glass rounded-2xl p-4 text-center hover:bg-white/10 transition">💬 View Customer Messages</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

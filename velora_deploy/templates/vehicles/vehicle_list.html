@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Browse Vehicles — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <form method="get" class="glass rounded-2xl p-3 flex flex-col sm:flex-row gap-3 mb-4">
+    <input type="text" name="q" value="{{ ai_query }}" placeholder='Natural language search, e.g. "electric SUV under $60,000"'
+           class="flex-1 bg-transparent px-4 py-3 rounded-xl placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-velora-blue">
+    <button class="bg-velora-blue hover:bg-blue-600 transition px-8 py-3 rounded-xl font-semibold">🔍 Search</button>
+  </form>
+
+  {% if ai_parsed %}
+    <div class="text-xs text-white/50 mb-6">AI understood your search as: {{ ai_parsed }}</div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+    <!-- Filters -->
+    <aside class="glass rounded-2xl p-5 h-fit lg:sticky lg:top-24">
+      <h3 class="font-semibold mb-4">Refine Results</h3>
+      <form method="get" class="space-y-4 text-sm">
+        <input type="hidden" name="q" value="{{ ai_query }}">
+        <div>
+          <label class="block text-white/60 mb-1">Make</label>
+          <input name="make" value="{{ filters.make }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Model</label>
+          <input name="model" value="{{ filters.model }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Year</label>
+          <input name="year" value="{{ filters.year }}" type="number" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-white/60 mb-1">Min Price</label>
+            <input name="price_min" value="{{ filters.price_min }}" type="number" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+          </div>
+          <div>
+            <label class="block text-white/60 mb-1">Max Price</label>
+            <input name="price_max" value="{{ filters.price_max }}" type="number" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+          </div>
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Country</label>
+          <input name="country" value="{{ filters.country }}" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Max Mileage</label>
+          <input name="mileage_max" value="{{ filters.mileage_max }}" type="number" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Fuel Type</label>
+          <select name="fuel_type" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+            <option value="">Any</option>
+            {% for value, label in fuel_choices %}
+              <option value="{{ value }}" {% if filters.fuel_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Transmission</label>
+          <select name="transmission" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+            <option value="">Any</option>
+            {% for value, label in transmission_choices %}
+              <option value="{{ value }}" {% if filters.transmission == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Drivetrain</label>
+          <select name="drivetrain" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+            <option value="">Any</option>
+            {% for value, label in drivetrain_choices %}
+              <option value="{{ value }}" {% if filters.drivetrain == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Body Style</label>
+          <select name="body_style" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+            <option value="">Any</option>
+            {% for value, label in body_style_choices %}
+              <option value="{{ value }}" {% if filters.body_style == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="block text-white/60 mb-1">Condition</label>
+          <select name="condition" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+            <option value="">Any</option>
+            {% for value, label in condition_choices %}
+              <option value="{{ value }}" {% if filters.condition == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="w-full bg-velora-blue hover:bg-blue-600 transition py-2 rounded-lg font-semibold">Apply Filters</button>
+        <a href="{% url 'vehicles:vehicle_list' %}" class="block text-center text-white/50 text-xs hover:text-white">Clear all</a>
+      </form>
+    </aside>
+
+    <!-- Results -->
+    <div class="lg:col-span-3">
+      <div class="flex items-center justify-between mb-4 text-sm text-white/60">
+        <span>{{ page_obj.paginator.count }} vehicles found</span>
+        <form method="get" class="flex items-center gap-2">
+          {% for key, value in filters.items %}{% if value %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}{% endfor %}
+          {% if ai_query %}<input type="hidden" name="q" value="{{ ai_query }}">{% endif %}
+          <label>Sort:</label>
+          <select name="sort" onchange="this.form.submit()" class="bg-black/30 border border-white/10 rounded-lg px-2 py-1">
+            <option value="-created_at">Newest</option>
+            <option value="price">Price: Low to High</option>
+            <option value="-price">Price: High to Low</option>
+            <option value="mileage">Mileage: Low to High</option>
+            <option value="-year">Year: Newest</option>
+          </select>
+        </form>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+        {% for vehicle in page_obj %}{% include "vehicles/_card.html" %}{% endfor %}
+      </div>
+
+      {% if not page_obj %}
+        <div class="glass rounded-2xl p-12 text-center text-white/60">No vehicles match your search. Try adjusting your filters.</div>
+      {% endif %}
+
+      <!-- Pagination -->
+      {% if page_obj.has_other_pages %}
+        <div class="flex justify-center gap-2 mt-8">
+          {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-4 py-2 glass rounded-lg text-sm">← Prev</a>
+          {% endif %}
+          <span class="px-4 py-2 text-sm text-white/60">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+          {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-4 py-2 glass rounded-lg text-sm">Next →</a>
+          {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

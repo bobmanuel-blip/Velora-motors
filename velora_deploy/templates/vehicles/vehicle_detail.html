@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load humanize velora_extras %}
+{% block title %}{{ vehicle }} — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Gallery -->
+    <div class="lg:col-span-2">
+      <div class="glass rounded-2xl overflow-hidden aspect-[16/10] mb-3">
+        {% if vehicle.primary_image %}
+          <img src="{{ vehicle.primary_image.image.url }}" class="w-full h-full object-cover" alt="{{ vehicle }}">
+        {% else %}
+          <div class="w-full h-full flex items-center justify-center text-7xl">🚗</div>
+        {% endif %}
+      </div>
+      {% if vehicle.images.count > 1 %}
+        <div class="grid grid-cols-5 gap-2 mb-8">
+          {% for img in vehicle.images.all %}
+            <div class="glass rounded-lg overflow-hidden aspect-square">
+              <img src="{{ img.image.url }}" class="w-full h-full object-cover">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <div class="glass rounded-2xl p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Overview</h2>
+        <p class="text-white/70 leading-relaxed">{{ vehicle.description|default:"No description provided yet." }}</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 mb-6">
+        <h2 class="text-xl font-bold mb-4">Specifications</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+          <div><span class="text-white/50">Engine</span><br>{{ vehicle.engine|default:"—" }}</div>
+          <div><span class="text-white/50">Horsepower</span><br>{{ vehicle.horsepower|default:"—" }} hp</div>
+          <div><span class="text-white/50">Torque</span><br>{{ vehicle.torque_lb_ft|default:"—" }} lb-ft</div>
+          <div><span class="text-white/50">Transmission</span><br>{{ vehicle.get_transmission_display }}</div>
+          <div><span class="text-white/50">Drivetrain</span><br>{{ vehicle.get_drivetrain_display }}</div>
+          <div><span class="text-white/50">Fuel Type</span><br>{{ vehicle.get_fuel_type_display }}</div>
+          <div><span class="text-white/50">Mileage</span><br>{{ vehicle.mileage|intcomma }} mi</div>
+          <div><span class="text-white/50">Exterior Color</span><br>{{ vehicle.exterior_color|default:"—" }}</div>
+          <div><span class="text-white/50">Interior Color</span><br>{{ vehicle.interior_color|default:"—" }}</div>
+          <div><span class="text-white/50">VIN</span><br>{{ vehicle.vin|default:"—" }}</div>
+          <div><span class="text-white/50">Condition</span><br>{{ vehicle.get_condition_display }}</div>
+          <div><span class="text-white/50">Location</span><br>{{ vehicle.city }}, {{ vehicle.country }}</div>
+        </div>
+      </div>
+
+      <div class="grid sm:grid-cols-2 gap-6">
+        {% if vehicle.interior_features %}
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3">Interior Features</h3>
+          <ul class="text-sm text-white/70 space-y-1">
+            {% for f in vehicle.interior_features|split_comma %}<li>• {{ f }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        {% if vehicle.safety_features %}
+        <div class="glass rounded-2xl p-6">
+          <h3 class="font-semibold mb-3">Safety Features</h3>
+          <ul class="text-sm text-white/70 space-y-1">
+            {% for f in vehicle.safety_features|split_comma %}<li>• {{ f }}</li>{% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Sidebar: price, actions, dealer, chat -->
+    <div class="space-y-6">
+      <div class="glass rounded-2xl p-6">
+        <h1 class="text-2xl font-bold">{{ vehicle.year }} {{ vehicle.make }} {{ vehicle.model }}</h1>
+        {% if vehicle.trim %}<p class="text-white/50">{{ vehicle.trim }}</p>{% endif %}
+        <div class="text-3xl font-extrabold text-white mt-3">{{ vehicle.currency }} {{ vehicle.price|intcomma }}</div>
+        <div class="text-xs text-white/50 mt-1">{{ vehicle.view_count }} views</div>
+
+        <div class="mt-6 space-y-2">
+          {% if user.is_authenticated and not user.is_dealer %}
+            <a href="{% url 'chatapp:start_conversation' vehicle.pk %}" class="block text-center bg-velora-blue hover:bg-blue-600 transition py-3 rounded-xl font-semibold">💬 Chat with Dealer</a>
+            <a href="{% url 'vehicles:wishlist_toggle' vehicle.pk %}" class="block text-center glass py-3 rounded-xl">
+              {% if is_wishlisted %}❤️ Saved to Wishlist{% else %}🤍 Save to Wishlist{% endif %}
+            </a>
+          {% elif not user.is_authenticated %}
+            <a href="{% url 'accounts:login' %}?next={{ request.path }}" class="block text-center bg-velora-blue hover:bg-blue-600 transition py-3 rounded-xl font-semibold">Log in to Chat with Dealer</a>
+          {% endif %}
+          {% if user == vehicle.dealer %}
+            <a href="{% url 'vehicles:vehicle_update' vehicle.pk %}" class="block text-center glass py-3 rounded-xl">Edit Listing</a>
+            <a href="{% url 'vehicles:vehicle_delete' vehicle.pk %}" class="block text-center border border-red-500/40 text-red-300 py-3 rounded-xl">Remove Listing</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="glass rounded-2xl p-6">
+        <h3 class="font-semibold mb-2">Sold by</h3>
+        <p class="font-medium">{{ vehicle.dealer.dealer_profile.company_name|default:vehicle.dealer.username }}</p>
+        {% if vehicle.dealer.dealer_profile.is_verified %}<span class="text-xs text-green-400">✅ Verified Dealer</span>{% endif %}
+        <p class="text-sm text-white/50 mt-1">{{ vehicle.dealer.dealer_profile.city }}{% if vehicle.dealer.dealer_profile.city %}, {% endif %}{{ vehicle.dealer.dealer_profile.country }}</p>
+      </div>
+
+      <div class="glass rounded-2xl p-6 text-sm text-white/60">
+        <p>📞 Questions? Call <a href="tel:{{ SUPPORT_PHONE }}" class="text-white underline">{{ SUPPORT_PHONE }}</a></p>
+        <p class="mt-1">{{ SUPPORT_HOURS }}</p>
+      </div>
+    </div>
+  </div>
+
+  {% if similar %}
+  <div class="mt-16">
+    <h2 class="text-2xl font-bold mb-6">Similar Vehicles</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for v in similar %}
+        {% with vehicle=v %}{% include "vehicles/_card.html" %}{% endwith %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

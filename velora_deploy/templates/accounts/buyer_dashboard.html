@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}My Dashboard — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <h1 class="text-2xl font-bold mb-8">My Dashboard</h1>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+    <a href="{% url 'chatapp:inbox' %}" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
+      <div class="text-2xl mb-2">💬</div><div class="font-semibold">Messages</div>
+      <div class="text-xs text-white/50">Chat with dealers</div>
+    </a>
+    <a href="{% url 'vehicles:vehicle_list' %}" class="glass rounded-2xl p-6 hover:bg-white/10 transition">
+      <div class="text-2xl mb-2">🔍</div><div class="font-semibold">Browse Vehicles</div>
+      <div class="text-xs text-white/50">Find your next car</div>
+    </a>
+    <div class="glass rounded-2xl p-6">
+      <div class="text-2xl mb-2">📄</div><div class="font-semibold">Order History</div>
+      <div class="text-xs text-white/50">Coming in the next milestone</div>
+    </div>
+  </div>
+
+  <h2 class="text-xl font-bold mb-4">Your Wishlist</h2>
+  {% if wishlist %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      {% for item in wishlist %}
+        {% with vehicle=item.vehicle %}{% include "vehicles/_card.html" %}{% endwith %}
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="glass rounded-2xl p-10 text-center text-white/60">Your wishlist is empty. Save a vehicle to see it here.</div>
+  {% endif %}
+</div>
+{% endblock %}

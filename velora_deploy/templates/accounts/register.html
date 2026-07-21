@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+{% block title %}Create Your Account — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="glass rounded-2xl p-8">
+    <h1 class="text-2xl font-bold mb-2 text-center">Join Velora Motors</h1>
+    <p class="text-center text-white/50 text-sm mb-6">Buy your dream car, or start selling as a dealer.</p>
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      {% for field in form %}
+        <div>
+          <label class="block text-sm text-white/60 mb-1">{{ field.label }}</label>
+          {{ field|add_class:"w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2 text-white" }}
+          {% if field.help_text %}<p class="text-white/40 text-xs mt-1">{{ field.help_text }}</p>{% endif %}
+          {% if field.errors %}<p class="text-red-400 text-xs mt-1">{{ field.errors|striptags }}</p>{% endif %}
+        </div>
+      {% endfor %}
+      <button class="w-full bg-velora-blue hover:bg-blue-600 transition py-3 rounded-xl font-semibold mt-4">Create Account</button>
+    </form>
+    <p class="text-center text-sm text-white/50 mt-6">
+      Already have an account? <a href="{% url 'accounts:login' %}" class="text-velora-blue underline">Log in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

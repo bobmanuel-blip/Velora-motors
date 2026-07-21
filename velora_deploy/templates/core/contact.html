@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Contact Us — Velora Motors{% endblock %}
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid grid-cols-1 md:grid-cols-2 gap-10">
+  <div>
+    <h1 class="text-2xl font-bold mb-2">Contact Velora Motors</h1>
+    <p class="text-white/60 mb-6">Our team responds in under 5 minutes, 24 hours a day, 7 days a week.</p>
+
+    <div class="glass rounded-2xl p-6 mb-6 space-y-2 text-sm">
+      <div>📞 <a href="tel:{{ SUPPORT_PHONE }}" class="hover:text-velora-blue">{{ SUPPORT_PHONE }}</a></div>
+      <div>📧 {{ SUPPORT_EMAIL }}</div>
+      <div>🕐 {{ SUPPORT_HOURS }}</div>
+    </div>
+
+    <form method="post" class="glass rounded-2xl p-6 space-y-4">
+      {% csrf_token %}
+      <div>
+        <label class="block text-sm text-white/60 mb-1">Full Name</label>
+        <input name="full_name" required class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+      </div>
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-sm text-white/60 mb-1">Email</label>
+          <input type="email" name="email" required class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+        <div>
+          <label class="block text-sm text-white/60 mb-1">Phone Number</label>
+          <input name="phone" class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+        </div>
+      </div>
+      <div>
+        <label class="block text-sm text-white/60 mb-1">Subject</label>
+        <input name="subject" required class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2">
+      </div>
+      <div>
+        <label class="block text-sm text-white/60 mb-1">Message</label>
+        <textarea name="message" rows="4" required class="w-full bg-black/30 border border-white/10 rounded-lg px-3 py-2"></textarea>
+      </div>
+      <button class="w-full bg-velora-blue hover:bg-blue-600 transition py-3 rounded-xl font-semibold">Send Message</button>
+    </form>
+  </div>
+
+  <div>
+    <h2 class="text-xl font-bold mb-4">Frequently Asked Questions</h2>
+    <div class="space-y-3">
+      <details class="glass rounded-xl p-4"><summary class="cursor-pointer font-medium">How does financing work?</summary><p class="text-white/60 text-sm mt-2">Apply directly from any vehicle page — most applications get an instant decision.</p></details>
+      <details class="glass rounded-xl p-4"><summary class="cursor-pointer font-medium">Do you ship internationally?</summary><p class="text-white/60 text-sm mt-2">Yes — we offer both ocean and air freight worldwide, with full customs support and tracking.</p></details>
+      <details class="glass rounded-xl p-4"><summary class="cursor-pointer font-medium">How are dealers verified?</summary><p class="text-white/60 text-sm mt-2">Every dealer goes through an identity and business verification process before receiving the Verified badge.</p></details>
+      <details class="glass rounded-xl p-4"><summary class="cursor-pointer font-medium">What if I'm not satisfied with my purchase?</summary><p class="text-white/60 text-sm mt-2">Eligible purchases are covered by our money-back guarantee — contact support to start a claim.</p></details>
+    </div>
+
+    <div class="mt-8">
+      <h3 class="font-semibold mb-2">Find Us</h3>
+      <div class="glass rounded-2xl overflow-hidden aspect-video">
+        <iframe
+          src="https://www.google.com/maps?q=1600+Amphitheatre+Parkway,+Mountain+View,+CA&output=embed"
+          class="w-full h-full border-0" loading="lazy"></iframe>
+      </div>
+      <p class="text-xs text-white/40 mt-2">Placeholder address — update with your real business address.</p>
+    </div>
+  </div>
+</div>
+{% endblock %}
